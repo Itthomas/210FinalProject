@@ -1,10 +1,12 @@
 import pygame
 import random
 
+ZOM_TYPES = [{}, {'speed':.04}, {'speed':.08}, {'speed':.025}, {'speed':.15}]
 X_MAX = 600
 Y_MAX = 700
-#ZOM_TYPES = [{}, {'speed':.5}, {'speed':1}, [{'speed':.3}, {'speed':2}]
 # Zombie types: type 1 : crawler, type 2 : regular, type 3 : behemoth, type 4 : sprinter
+
+
 
 class Game:
     def __init__(self):
@@ -18,15 +20,29 @@ class Game:
     def play(self):
         while True:
             self.get_inputs()
+            self.spawn_zombies()
             self.do_outputs()
 
     def get_entities(self):
-        entities = [self._crosshair, self._score, self._heat]
+        entities = []
         for zombie in self._zombies.get_all():
             entities.append(zombie)
+        entities.append(self._crosshair)
+        entities.append(self._score)
+        entities.append(self._heat)
         return entities
 
+    def update_score(self):
+        pass
+
+    def spawn_zombies(self):
+        spawn = random.randint(1, 1000)
+        if spawn > 999:
+            self._zombies.add_zombie(300)
+
     def do_outputs(self):
+        for zombie in self._zombies.get_all():
+            zombie.move()
         self._outputs.place_entities(self.get_entities())
 
     def get_inputs(self):
@@ -52,12 +68,12 @@ class Entity:
         return self._location
 
 class Zombie(Entity):
-    def __init_(self, zom_type):
-        super().__init__()
+    def __init__(self, zom_type):
         self._type = zom_type
         self._velocity = ZOM_TYPES[self._type]['speed']
-        self.update_image = f'zombie{self._type}.png'
-        self.update_location((random.randint(5, 545), -50))
+        super().__init__()
+        self.update_image(f'zombie{self._type}.png')
+        self.update_location((random.randint(5, 545), -200))
 
     def move(self):
         self.update_location((self._location[0], self._location[1] + self._velocity))
@@ -66,19 +82,19 @@ class Zombies:
     def __init__(self):
         self._zombies = []
 
-    def add_zombie(score):
+    def add_zombie(self, score):
         perc = random.randint(1, 100)
         perc_spread = [0]
         for i in range(4):
             if score <= 400:
                 if i == 0:
-                    perc_spread.append(-.1 * score + 40)
+                    perc_spread.append(-.5 * score + 20)
                 elif i == 1:
-                    perc_spread.append((-.15 * score + 60) + perc_spread[1])
+                    perc_spread.append((-.2 * score + 80) + perc_spread[1])
                 elif i == 2:
-                    perc_spread.append((.1 * score) + perc_spread[2])
+                    perc_spread.append((.5 * score) + perc_spread[2])
                 elif i == 3:
-                    perc_spread.append((.15 * score) + perc_spread[3])
+                    perc_spread.append((.2 * score) + perc_spread[3])
         print(perc_spread)
         for i in range(1, 5):
             if perc_spread[i] >= perc and perc_spread[i - 1] < perc:
@@ -116,6 +132,9 @@ class Score(Text):
     def update_score(self, val):
         self._score += val
         self.set_text(f'Score: {self._score}')
+
+    def get_score(self):
+        return self._score
 
 class Heat(Text):
     def __init__(self):
