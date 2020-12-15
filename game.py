@@ -3,7 +3,8 @@ import random
 
 X_MAX = 600
 Y_MAX = 700
-ZOM_TYPES = ['regular', 'sprinter', 'crawler', 'behemoth']
+#ZOM_TYPES = [{}, {'speed':.5}, {'speed':1}, [{'speed':.3}, {'speed':2}]
+# Zombie types: type 1 : crawler, type 2 : regular, type 3 : behemoth, type 4 : sprinter
 
 class Game:
     def __init__(self):
@@ -21,6 +22,8 @@ class Game:
 
     def get_entities(self):
         entities = [self._crosshair, self._score, self._heat]
+        for zombie in self._zombies.get_all():
+            entities.append(zombie)
         return entities
 
     def do_outputs(self):
@@ -49,14 +52,46 @@ class Entity:
         return self._location
 
 class Zombie(Entity):
-    def __init_(self):
+    def __init_(self, zom_type):
         super().__init__()
-        
+        self._type = zom_type
+        self._velocity = ZOM_TYPES[self._type]['speed']
+        self.update_image = f'zombie{self._type}.png'
+        self.update_location((random.randint(5, 545), -50))
 
+    def move(self):
+        self.update_location((self._location[0], self._location[1] + self._velocity))
 
 class Zombies:
     def __init__(self):
         self._zombies = []
+
+    def add_zombie(score):
+        perc = random.randint(1, 100)
+        perc_spread = [0]
+        for i in range(4):
+            if score <= 400:
+                if i == 0:
+                    perc_spread.append(-.1 * score + 40)
+                elif i == 1:
+                    perc_spread.append((-.15 * score + 60) + perc_spread[1])
+                elif i == 2:
+                    perc_spread.append((.1 * score) + perc_spread[2])
+                elif i == 3:
+                    perc_spread.append((.15 * score) + perc_spread[3])
+        print(perc_spread)
+        for i in range(1, 5):
+            if perc_spread[i] >= perc and perc_spread[i - 1] < perc:
+                zombie = Zombie(i)
+                self._zombies.append(zombie)
+                break
+
+    def get_all(self):
+        return self._zombies
+
+    def kill(self, index):
+        self._zombies.pop(index)
+
 
 class Crosshair(Entity):
     def __init__(self):
