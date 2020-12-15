@@ -1,27 +1,40 @@
 import pygame
+import random
 
 X_MAX = 600
 Y_MAX = 700
+ZOM_TYPES = ['regular', 'sprinter', 'crawler', 'behemoth']
 
 class Game:
     def __init__(self):
-        self._thing = Something()
+        self._inputs = Input()
+        self._outputs = Output()
+        self._zombies = Zombies()
+        self._crosshair = Crosshair()
+        self._score = Score()
+        self._heat = Heat()
 
     def play(self):
-        playing = True
-        while playing:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    playing == False
-                    pygame.display.quit()
-                    pygame.quit()
-            screen.blit(self._thing.get_image(), self._thing.get_location())
-            pygame.display.update()
+        while True:
+            self.get_inputs()
+            self.do_outputs()
+
+    def get_entities(self):
+        entities = [self._crosshair, self._score, self._heat]
+        return entities
+
+    def do_outputs(self):
+        self._outputs.place_entities(self.get_entities())
+
+    def get_inputs(self):
+        pos = self._inputs.get_mouse_pos()
+        clicked = self._inputs.get_mouse_press()
+        self._crosshair.update_location((pos[0] - 25, pos[1] -25))
 
 class Entity:
     def __init__(self):
         self._location = (0, 0)
-        self._image = pygame.image.load('nothing.png')
+        self.image = pygame.image.load('nothing.png')
 
     def update_location(self, location):
         self._location = location
@@ -35,24 +48,84 @@ class Entity:
     def get_location(self):
         return self._location
 
-class Something(Entity):
+class Zombie(Entity):
+    def __init_(self):
+        super().__init__()
+        
+
+
+class Zombies:
+    def __init__(self):
+        self._zombies = []
+
+class Crosshair(Entity):
     def __init__(self):
         super().__init__()
-        self.update_image('red_dot.png')
+        self.update_image('nothing.png')
 
+class Text(Entity):
+    def __init__(self):
+        self._font = pygame.font.SysFont(None, 48)
+        self._image = self._font.render('', True, (255, 255, 255))
+
+    def set_text(self, text, rgb=(255, 255, 255)):
+        self._image = self._font.render(text, True, rgb)
+
+class Score(Text):
+    def __init__(self):
+        super().__init__()
+        self._score = 0
+        self.update_location((5, 5))
+        self.update_score(0)
+
+    def update_score(self, val):
+        self._score += val
+        self.set_text(f'Score: {self._score}')
+
+class Heat(Text):
+    def __init__(self):
+        super().__init__()
+        self._heat = 0
+        self.update_location((300, 5))
+        self.update_heat(0)
+
+    def update_heat(self, val):
+        self._heat += val
+        gb = 255 - self._heat
+        self.set_text(f'Heat Level: {(self._heat + 180)/2}°F', (255, gb, gb))
 
 class Input:
-    pass
+    def __init__(self):
+        self._mouse_pos = (0, 0)
+        self._is_pressed = False
+    def get_mouse_press(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.display.quit()
+                pygame.quit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                self._is_pressed = True
+                return self._is_pressed
+            elif event.type == pygame.MOUSEBUTTONUP:
+                self._is_pressed = False
+                return self._is_pressed
+    def get_mouse_pos(self):
+        self._mouse_pos = pygame.mouse.get_pos()
+        return self._mouse_pos
+
+        
 
 class Output:
-    pass
-
-
-
+    def place_entities(self, entities):
+        screen.fill((0, 0, 0))
+        for entity in entities:
+            screen.blit(entity.get_image(), entity.get_location())
+        pygame.display.update()
 
 
 if __name__ == '__main__':
     pygame.init()
     screen = pygame.display.set_mode((X_MAX, Y_MAX))
+    pygame.mouse.set_visible(False)
     game = Game()
     game.play()
